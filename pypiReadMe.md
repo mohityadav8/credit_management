@@ -145,4 +145,4 @@ If `CREDIT_MONGO_URI` is set, the system will automatically use the MongoDB back
 
 ## Contributing
 
-Contributions are welcome! Please feel free to open an issue or submit a pull request on the [GitHub repository](https://github.com/Meenapintu/credit_management).
+Contributions are welcome! Please feel free to open an issue or submit a pull request on the [GitHub repository](https://github.com/mohityadav8/credit_management).
