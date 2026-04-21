@@ -413,6 +413,6 @@ Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidel
 ## 📦 Package Links
 
 - [PyPI](https://pypi.org/project/credit-management/)
-- [GitHub](https://github.com/Meenapintu/credit_management)
+- [GitHub](https://github.com/mohityadav8/credit_management)
 - [Changelog](CHANGELOG.md)
-- [Documentation](https://github.com/Meenapintu/credit_management)
+- [Documentation](https://github.com/mohityadav8/credit_management)
