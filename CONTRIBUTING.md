@@ -17,7 +17,7 @@ Please take a moment to review these guidelines to make the contribution process
 ---
 
 ### Reporting Bugs
-If you find a bug, please [open an issue](https://github.com/Meenapintu/credit_management/issues) and include:
+If you find a bug, please [open an issue](https://github.com/mohityadav8/credit_management/issues) and include:
 * A clear, descriptive title.
 * Steps to reproduce the problem.
 * What you expected to happen vs. what actually happened.
