@@ -46,11 +46,11 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/Meenapintu/credit_management"
-"Documentation" = "https://github.com/Meenapintu/credit_management"
-"Changelog" = "https://github.com/Meenapintu/credit_management/blob/main/CHANGELOG.md"
-"Bug Tracker" = "https://github.com/Meenapintu/credit_management/issues"
-"Source Code" = "https://github.com/Meenapintu/credit_management"
+"Homepage" = "https://github.com/mohityadav8/credit_management"
+"Documentation" = "https://github.com/mohityadav8/credit_management"
+"Changelog" = "https://github.com/mohityadav8/credit_management/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/mohityadav8/credit_management/issues"
+"Source Code" = "https://github.com/mohityadav8/credit_management"
 
 [tool.setuptools.packages.find]
 where = ["src"]
