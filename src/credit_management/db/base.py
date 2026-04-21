@@ -1,0 +1,183 @@
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from contextlib import asynccontextmanager
+from typing import AsyncIterator, Iterable, Optional, Protocol
+
+from ..models.credits import CreditExpiryRecord, ReservedCredits
+from ..models.notification import NotificationEvent
+from ..models.ledger import LedgerEntry
+from ..models.subscription import SubscriptionPlan, UserSubscription
+from ..models.transaction import Transaction
+from ..models.user import UserAccount, UserCreditInfo
+from ..models.payment import PaymentRecord
+from ..models.promo import PromoRecord, UserPromoClaim
+
+
+class AsyncTransaction(Protocol):
+    async def __aenter__(self) -> "AsyncTransaction":  # pragma: no cover - trivial
+        ...
+
+    async def __aexit__(self, exc_type, exc, tb) -> None:  # pragma: no cover
+        ...
+
+
+class BaseDBManager(ABC):
+    """
+    DB-agnostic async manager interface.
+
+    Concrete implementations (SQLAlchemy, MongoDB, etc.) should implement
+    these methods. All methods are designed for atomicity through the
+    `transaction()` context manager.
+    """
+
+    @abstractmethod
+    @asynccontextmanager
+    async def transaction(self) -> AsyncIterator[None]:
+        """
+        Provide an atomic transaction context if the backend supports it.
+        Should rollback on exception and commit on success.
+        """
+        yield
+
+    # User operations
+    @abstractmethod
+    async def add_user(self, user: UserAccount) -> UserAccount: ...
+
+    @abstractmethod
+    async def get_user(self, user_id: str) -> Optional[UserAccount]: ...
+
+    @abstractmethod
+    async def update_user(self, user: UserAccount) -> UserAccount: ...
+
+    @abstractmethod
+    async def get_user_credits(self, user_id: str) -> float: ...
+
+    @abstractmethod
+    async def get_user_credits_info(self, user_id: str) -> UserCreditInfo:
+        """
+        Get balance, reserved, and available credits in a single optimized call.
+        This is more efficient than calling get_user_credits + get_reserved_credits_for_user separately.
+        """
+        ...
+
+    # Transaction / ledger operations
+    @abstractmethod
+    async def add_transaction(self, tx: Transaction) -> Transaction: ...
+
+    @abstractmethod
+    async def get_transaction(self, transaction_id: str) -> Optional[Transaction]: ...
+
+    @abstractmethod
+    async def get_transactions(self, user_id: str) -> Iterable[Transaction]: ...
+
+    # Credit expiry / reservation
+    @abstractmethod
+    async def add_credit_expiry_record(self, record: CreditExpiryRecord) -> CreditExpiryRecord: ...
+
+    @abstractmethod
+    async def get_credit_expiry_history(self, user_id: str) -> Iterable[CreditExpiryRecord]: ...
+
+    @abstractmethod
+    async def add_reserved_credits(self, reserved: ReservedCredits) -> ReservedCredits: ...
+
+    @abstractmethod
+    async def get_reserved_credits_for_subscription_plan(
+        self, subscription_plan_id: str
+    ) -> Iterable[ReservedCredits]: ...
+
+    @abstractmethod
+    async def get_reserved_credits_for_user(self, user_id: str) -> float:
+        """
+        Sum of credits currently reserved for this user (not yet committed or released).
+        Used to compute available balance = get_user_credits - get_reserved_credits_for_user.
+        """
+        ...
+
+    # Subscription operations
+    @abstractmethod
+    async def add_subscription_plan(self, plan: SubscriptionPlan) -> SubscriptionPlan: ...
+
+    @abstractmethod
+    async def update_subscription_plan(self, plan: SubscriptionPlan) -> SubscriptionPlan: ...
+
+    @abstractmethod
+    async def delete_subscription_plan(self, plan_id: str) -> None: ...
+
+    @abstractmethod
+    async def get_subscription_plan(self, plan_id: str) -> Optional[SubscriptionPlan]: ...
+
+    @abstractmethod
+    async def get_all_subscription_plans(self) -> Iterable[SubscriptionPlan]: ...
+
+    @abstractmethod
+    async def add_user_subscription(self, user_subscription: UserSubscription) -> UserSubscription: ...
+
+    @abstractmethod
+    async def get_user_subscription_plan(self, user_id: str) -> Optional[UserSubscription]: ...
+
+    @abstractmethod
+    async def update_user_subscription_plan(self, user_subscription: UserSubscription) -> UserSubscription: ...
+
+    @abstractmethod
+    async def delete_user_subscription_plan(self, user_id: str) -> None: ...
+
+    # Notifications
+    @abstractmethod
+    async def add_notification_event(self, notification: NotificationEvent) -> NotificationEvent: ...
+
+    # Ledger
+    @abstractmethod
+    async def add_ledger_entry(self, entry: LedgerEntry) -> LedgerEntry: ...
+
+    # Payment operations
+    @abstractmethod
+    async def add_payment_record(self, record: PaymentRecord) -> PaymentRecord: ...
+
+    @abstractmethod
+    async def get_payment_by_provider_id(self, provider_payment_id: str) -> Optional[PaymentRecord]: ...
+
+    @abstractmethod
+    async def get_payment_by_order_id(self, provider_order_id: str) -> Optional[PaymentRecord]: ...
+
+    @abstractmethod
+    async def get_payment_record(self, payment_id: str, user_id: Optional[str] = None) -> Optional[PaymentRecord]: ...
+
+    @abstractmethod
+    async def get_payment_records_by_user(
+        self, user_id: str, limit: int = 20, skip: int = 0
+    ) -> Iterable[PaymentRecord]: ...
+
+    @abstractmethod
+    async def count_payment_records(self, user_id: str) -> int: ...
+
+    @abstractmethod
+    async def update_payment_record_atomic(self, payment_id: str, credits_to_add: float, status: str, provider_payment_id: str = None, provider_order_id: str = None) -> bool: ...
+
+    # Promo operations
+    @abstractmethod
+    async def add_promo(self, promo: PromoRecord) -> PromoRecord: ...
+
+    @abstractmethod
+    async def get_promo_by_id(self, promo_id: str) -> Optional[PromoRecord]: ...
+
+    @abstractmethod
+    async def get_promo_by_code(self, code: str) -> Optional[PromoRecord]: ...
+
+    @abstractmethod
+    async def list_promos(self, active_only: bool = True) -> list[PromoRecord]: ...
+
+    @abstractmethod
+    async def update_promo(self, promo: PromoRecord) -> PromoRecord: ...
+
+    @abstractmethod
+    async def add_promo_claim(self, claim: UserPromoClaim) -> UserPromoClaim: ...
+
+    @abstractmethod
+    async def get_user_promo_claims(self, user_id: str) -> list[UserPromoClaim]: ...
+
+    @abstractmethod
+    async def count_promo_claims(self, promo_id: str) -> int: ...
+
+    @abstractmethod
+    async def count_user_promo_claims(self, user_id: str, promo_id: str) -> int: ...

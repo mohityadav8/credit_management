@@ -1,0 +1,36 @@
+# .github/workflows/ci-cd.yml
+name: CI # Workflow name
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: # publish only when version tags are pushed
+jobs:
+  pypi-publish:
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/Credit-Management
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+      contents: read
+    steps:
+    # retrieve your distributions here
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12" # Or whatever the version the package needs
+
+    - name: Install build backend
+      run: python -m pip install --upgrade pip build
+      
+    - name: Build dists
+      run: python -m build
+          
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        print-hash: true
